@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum</title>
+</head>
+<body>
+    <header>
+        <h1>Välkommen till mitt forum</h1>
+        <nav>
+            <a href="{{ url_for('forum_home') }}">Hem (Trådar)</a> |
+            {% if session.get('user') %}
+                Inloggad som: <strong>{{ session['user'] }}</strong> | 
+                <a href="{{ url_for('logout') }}">Logga ut</a>
+            {% else %}
+                <a href="{{ url_for('index') }}">Logga in</a> | 
+                <a href="{{ url_for('registrera') }}">Skapa konto</a>
+            {% endif %}
+        </nav>
+    </header>
+    <hr>
+    
+    {% block content %}{% endblock %}
+    
+</body>
+</html>

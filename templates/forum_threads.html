@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum - trådar</title>
+</head>
+<body>
+    {% extends "layout.html" %}
+
+    {% block content %}
+    <h1>Diskussionsämnen</h1>
+    <p>Inloggad som: {{ session['user'] }} | <a href="/logout">Logga ut</a></p>
+
+    <h3>Skapa ny tråd</h3>
+    <form method="post" action="/create_topic">
+        Rubrik: *<input type="text" name="title" required>
+        <button type="submit">Starta ny tråd</button>
+    </form>
+    <br>
+
+    <h3>Alla trådar</h3>
+    <ul>
+        {% for topic in topics %}
+            <li>
+                <a href="/topic/{{ topic.id }}">{{ topic.title }}</a>
+                (Skapad av: {{ topic.creator }})
+            </li>
+        {% endfor %}
+    </ul>
+    {% endblock %}
+</body>
+</html>
