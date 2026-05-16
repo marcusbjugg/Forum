@@ -15,6 +15,7 @@ def get_connection():
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    session.clear()
     if request.method == 'POST':
         username_input = request.form['name']
         password_input = request.form['password']
@@ -22,7 +23,7 @@ def index():
         db = get_connection()
         cursor = db.cursor(dictionary=True)
 
-        sql = "SELECT * FROM users WHERE username = %s AND password = %s"
+        sql = "SELECT * FROM users WHERE BINARY username = %s AND BINARY password = %s"
         cursor.execute(sql, (username_input, password_input))
         user = cursor.fetchone()
 
@@ -48,7 +49,19 @@ def registrera():
         email = request.form['email']
 
         db = get_connection()
-        cursor = db.cursor()
+        cursor = db.cursor(dictionary=True)
+
+        cursor.execute("SELECT * FROM users WHERE BINARY username = %s", (username,))
+        existing_user = cursor.fetchone()
+
+        if existing_user:
+            return "Användarnamnet är tyvärr redan upptaget <a href='/registrera'>Försök igen</a>"
+        
+        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+        existing_email = cursor.fetchone()
+
+        if existing_email:
+            return "Denna email har redan ett konto <a href='/registrera'>Försök igen</a>"
 
         sql = "INSERT INTO users (username, password, email) VALUES (%s, %s, %s)"
         val = (username, password, email)
@@ -84,8 +97,39 @@ def skapa_tråd():
         sql = "INSERT INTO topics (title, creator) VALUES (%s, %s)"
         cursor.execute(sql, (title, creator))
         db.commit()
-        
+
     return redirect(url_for('forum_home'))
+
+@app.route('/topic/<int:topic_id>')
+def topic(topic_id):
+    if 'user' not in session:
+        return redirect(url_for('index'))
+
+    db = get_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM topics WHERE id = %s", (topic_id,))
+    topic_info = cursor.fetchone()
+
+    cursor.execute("SELECT * FROM posts WHERE topic_id = %s ORDER BY time ASC", (topic_id,))
+    posts = cursor.fetchall()
+    
+    return render_template('topic.html', topic=topic_info, posts=posts)
+
+@app.route('/post_reply/<int:topic_id>', methods=['POST'])
+def post_reply(topic_id):
+    if 'user' in session:
+        text = request.form['text']
+        author = session['user']
+
+        db = get_connection()
+        cursor = db.cursor()
+
+        sql = "INSERT INTO posts (author, text, time, topic_id) VALUES (%s, %s, NOW(), %s)"
+        cursor.execute(sql, (author, text, topic_id))
+        db.commit()
+
+    return redirect(url_for('topic', topic_id=topic_id))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

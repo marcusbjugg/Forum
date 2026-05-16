@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+    {% block content %}
+        <a href="{{ url_for('forum_home') }}">Tillbaka till alla trådar</a>
+
+        <h2>Tråd: {{ topic.title }}</h2>
+        <p>Startad av: {{ topic.creator }}</p>
+        <br>
+
+        <h3>Inlägg</h3>
+        {% for post in posts %}
+            <div>
+                <strong>{{ post.author }}</strong> skrev ({{ post.time }}):
+                <p>{{ post.text }}</p>
+            </div>
+        {% else %}
+            <p>Inga inlägg än. Bli först med att svara!</p>
+        {% endfor %}
+
+        <br>
+        <h3>Skriv ett svar</h3>
+        <form method="post" action="/post_reply/{{ topic.id }}">
+            <textarea name="text" rows="4" cols="50" required placeholder="Vad vill du skriva?"></textarea><br>
+            <button type="submit">Publicera svar</button>
+        </form>
+    {% endblock %}
